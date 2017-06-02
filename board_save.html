@@ -1,0 +1,34 @@
+<?
+ $conn=mysql_connect("localhost","root","apmsetup");
+ mysql_select_db("webdb", $conn);
+
+ $upload_dir = 'uploads/';
+ $upload_file = $upload_dir.$_FILES['addfile']['name'];
+
+ if($mode=="Insert") {
+	$max_num_query="select max(num) as tnum from board";
+	$max_num_result=mysql_query($max_num_query, $conn);
+	$max_num_list=mysql_fetch_array($max_num_result);
+	$num=$max_num_list["tnum"]+1;
+
+	$max_root_query="select max(root) as troot from board";
+	$max_root_result=mysql_query($max_root_query, $conn);
+	$max_root_list=mysql_fetch_array($max_root_result);
+	$num=$max_root_list["troot"]+1;
+	}
+ if($addfile_name !="") {
+   if(move_uploaded_file($_FILES['addfile']['tmp_name'], $upload_file)) {
+   $query="insert into board values (".$num.",".$root.",0,'".$title."','".$writer."','".$pwd."','".$content."','".$_FILES['addfile']['name']."',now(),0,'".getenv("REMOTE_ADDER")."')";
+   $query_res=mysql_query($query, $conn);
+   }
+ }
+ else {
+   $query="insert into board values (".$num.",".$root.",0,'".$title."','".$writer."','".$pwd."','".$content."',now(),0,'".getenv("REMOTE_ADDER")."')";
+   $query_res=mysql_query($query, $conn);
+ }
+ //elseif ($mode=="update") {}
+ //elseif ($mode=="delete") {}
+
+ print "<meta http-equiv='refresh' content='0; url=board.html'>";
+ //print $query;
+?>

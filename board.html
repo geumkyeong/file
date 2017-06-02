@@ -1,0 +1,99 @@
+<html>
+<head>
+<title></title>
+<meta http-equiv="Content-Type" content="text/html; charset=euc-kr">
+</head>
+<body>
+ <table width="400" border=0 cellspacing="0" cellpadding="0">
+ <tr><td width=100% align=center><B>게 시 판</B></tr>
+ <tr><td width=100%>
+<?
+ function Sub_List($num, $depth, $now_num, $table) {
+  $squery="select num,root,reply,title,writer,wdate,count from".$table."where abs(reply)=".$num;
+  $sublist_result=mysql_query($squery);
+
+  while($list=mysql_fetch_array($sublist_result)) {
+    print"<tr><td align=center>&nbsp;</td><td>";
+    for($i=0;$i<$depth;$i++) print"&nbsp;&nbsp;";
+    print "[Re]<a href=board_view.html?page=".$page."&num=".$list["num"].">".$list["title"]."</a></td>";
+    print "<td align=center>".$list["writer"]."</td>";
+    print "<td align=center>".$list["wdate"]."</td>";
+    print "<td align=center>".$list["count"]."</td></tr>";
+    print "<tr><td colspan=5>----------------------------------------------</td></tr>";
+     if($num==abs($list["reply"])) //댓글이 있을 때
+      Sub_List($list["num"],$depth+1,$now_num, $table);
+  }
+ }
+
+ $conn=mysql_connect("localhost","root","apmsetup");
+ mysql_select_db("webdb", $conn);
+ mysql_query("set names euckr");
+
+ $pg_view_cnt=5;
+ $query="select num, root, reply, title, writer, wdate, count from board where reply=0 order by root desc";
+ $list_result=mysql_query($query, $conn);
+ $totalCount=mysql_num_rows($list_result);
+
+ if($totalCount>(floor($totalCount/$pg_view_cnt))*$pg_view_cnt)
+   $totalCount=floor($totalCount/$pg_view_cnt)+1;
+ else
+   $totalCount=$totalCount/$pg_view_cnt;
+
+ if($page>0) $page=$page; else $pase=1;
+?>
+  <table width="400" border=0 cellspacing="0" cellpadding="0">
+  <tr align=center bgcolor=f0f8ff><td width=30>번호</td><td width=170>제목</td><td width=50>글쓴이</td><td width=100>날짜</td><td width=50>조회수</td></tr>
+<?
+ $i=0; $j=0;
+ while($list=mysql_fetch_array($list_result)) {
+	$i=$i+1;
+	if(($page-1)*$pg_view_cnt<$i) {
+	$j=$j+1;
+	  print "<tr height=20 valign=bottom><td align=center>".$list["root"]."</td>";
+	  print "<td><a href=board_view.html?page=".$page."&num=".$list["num"].">".$list["title"]."</a></td>";
+	  print "<td align=center>".$list["write"]."</td>";
+	  print "<td align=center>".$list["wdate"]."</td>";
+	  print "<td align=center>".$list["count"]."</td></tr>";
+	  print "<tr><td colspan=5>----------------------------------------------</td></tr>";
+	}
+	Sub_List($list["num"],1,$list["num"],board);
+	print "<tr><td colspan=5>----------------------------------------------</td></tr>";
+	if($j==$pg_view_cnt) break;
+ }
+?>
+	</table><br>
+	<table width="400" border=0 cellspacing="0" cellpadding="0">
+	 <tr align=center><td width=80>
+	 <? if($page>$pg_view_cnt) print"<a href=board.html?page=".(floor(($page-1)/$pg_view_cnt)*$pg_view_cnt).">◀</a>"; ?>
+	  </td>
+	  <td width=300>
+	 <? //페이지 번호 목록 출력부분
+	   if($i==($page*$pg_view_cnt)||$page>1) {
+		for($i==(floor(($page-1)/$pg_view_cnt)*$pg_view_cnt+1); $i<=((floor(($page-1)/$pg_view_cnt))+1)*$pg_view_cnt; $i++) {
+		 if($i==$totalCount) {
+		  if($i==$page) print"<B>".$i."</B>"; else print"<a href=board.html?&page=".$i.">".$i."</a>";
+		  $i=$i+q;
+		  break;
+		 }
+		 else if($i==$page) print"<B>".$i."</B>|"; else print"<a href=board.html?&page=".$i.">".$i."</a>|";
+		}
+	   }
+	   else if($i>0) print"<B>1 </B>";
+	?>
+      </td>
+	  <td width=80>
+	  <?//다음 페이지목록 링크
+		$i=$i-1;
+		if($i<$totalCount&&$i>0) print"<a href=board.html?page=".($i+1).">▶</a>";
+	  ?>
+	  </td>
+	 </tr>
+	 <tr>
+	  <td colspan=4 align=right><a href=board_write.html?mode=Insert>글 쓰기</a></td>
+	 </tr>
+	</table>
+   </td>
+  </tr>
+ </table>
+</body>
+</html>
